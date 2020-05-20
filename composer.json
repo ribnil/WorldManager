@@ -1,0 +1,11 @@
+{
+    "name": "ribnil/WorldManager",
+    "description": "PMMP plugin.",
+    "minimum-stability": "stable",
+    "license": "proprietary",
+    "authors": [{
+        "name": "ribnil"
+    }],
+    "require": {
+    }
+}
