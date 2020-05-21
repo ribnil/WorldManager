@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace world_manager\command;
 
+use Exception;
 use pocketmine\Player;
 use pocketmine\command\Command;
 use pocketmine\command\CommandSender;
 use pocketmine\command\ConsoleCommandSender;
 use pocketmine\scheduler\AsyncTask;
+use pocketmine\Server;
 use world_manager\WorldManager;
 use ZipArchive;
 use function date;
@@ -30,12 +32,14 @@ class WorldBackup extends Command
 	}
 
 	public function execute(CommandSender $sender, string $commandLabel, array $args): bool {
-		if($sender instanceof ConsoleCommandSender || $sender instanceof Player && $sender->isOp())
+		if($sender instanceof ConsoleCommandSender || $sender instanceof Player && $sender->isOp()) {
+			$this->getWorldManager()->getServer()->broadcastMessage("§c§l[WorldManager] BACKUP WORLDS...");
 			$this->getWorldManager()->getServer()->getAsyncPool()->submitTask(new BackupTask(
-				serialize($this->getWorldManager()->getWorldHandler()->getAllWorldName()),
-				$this->getWorldManager()->getDataFolder(),
-				date("Ymd_His"))
+					serialize($this->getWorldManager()->getWorldHandler()->getAllWorldName()),
+					$this->getWorldManager()->getDataFolder(),
+					date("Ymd_His"))
 			);
+		}
 		return true;
 	}
 
@@ -103,8 +107,16 @@ class BackupTask extends AsyncTask
 	}
 
 	public function onRun() {
-		echo "[WorldManager] BACKUP WORLDS...".PHP_EOL;
-		$this->backup($this->getFolderPath(), $this->getCurrentTime());
-		echo "[Worldmanager] COMPLETE BACKUP WORLDS.".PHP_EOL;
+		try {
+			$this->backup($this->getFolderPath(), $this->getCurrentTime());
+			$this->setResult("§a§l[WorldManager] COMPLETE BACKUP WORLDS.");
+		} catch(Exception $exception) {
+			$this->setResult("§e§l[WorldManager] WORLD BACKUP ERROR.");
+		}
+	}
+
+	public function onCompletion(Server $server) {
+		$message = $this->getResult();
+		$server->broadcastMessage($message);
 	}
 }

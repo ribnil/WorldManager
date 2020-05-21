@@ -6,6 +6,7 @@ namespace world_manager;
 
 use pocketmine\plugin\PluginBase;
 use world_manager\command\WorldBackup;
+use world_manager\command\WorldManagement;
 use function date_default_timezone_set;
 
 class WorldManager extends PluginBase
@@ -19,9 +20,22 @@ class WorldManager extends PluginBase
 
 	public function onEnable(): void {
 		$this->worldHandler = new WorldHandler($this);
-		$this->getServer()->getCommandMap()->register("pocketmine", new WorldBackup(
-			$this, "backup", "world backup command.", "/backup", ["wb"]
-		));
+		$this->getServer()->getCommandMap()->registerAll("pocketmine", [
+			new WorldBackup(
+				$this,
+				"backup",
+				"world backup command.",
+				"/backupping, /wb",
+				["wb"]
+			),
+			new WorldManagement(
+				$this->getWorldHandler(),
+				"management",
+				"send world management form.",
+				"/management, /world",
+				["world"]
+			)
+		]);
 	}
 
 	/** @return WorldHandler */
