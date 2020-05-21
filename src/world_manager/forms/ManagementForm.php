@@ -20,7 +20,7 @@ class ManagementForm extends ButtonForm
 			if($data !== null) {
 				switch($data) {
 					case 0: $player->sendForm(new WorldTeleportForm($worldHandler)); break;
-					case 1: break;
+					case 1: $player->sendForm(new WorldGenerateForm($worldHandler)); break;
 					case 2: Server::getInstance()->dispatchCommand($player, "backup"); break;
 				}
 			}

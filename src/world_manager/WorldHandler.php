@@ -74,6 +74,8 @@ class WorldHandler
 	public function generate(string $type, string $name, array $options): bool {
 		if($this->loadWorld($name))
 			return false;
+
+		$this->getWorldManager()->getServer()->broadcastMessage("§c[WorldManager] World Generating...");
 		return $this->getWorldManager()->getServer()->generateLevel(
 			$name, time(), GeneratorManager::getGenerator($type), $options
 		);
