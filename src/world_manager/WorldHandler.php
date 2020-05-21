@@ -42,7 +42,6 @@ class WorldHandler
 	}
 
 	private function update(): void {
-		var_dump(scandir("./worlds/*"));
 		$this->worldsName = array_values(array_diff(scandir("./worlds/"), [".", ".."]));
 	}
 

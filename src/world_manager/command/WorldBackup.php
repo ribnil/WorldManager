@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace ricca\commands\server;
+namespace world_manager\command;
 
 use pocketmine\Player;
 use pocketmine\command\Command;
@@ -16,6 +16,8 @@ use function glob;
 use function mkdir;
 use function file_exists;
 use function str_replace;
+use function serialize;
+use function unserialize;
 
 class WorldBackup extends Command
 {
@@ -30,7 +32,7 @@ class WorldBackup extends Command
 	public function execute(CommandSender $sender, string $commandLabel, array $args): bool {
 		if($sender instanceof ConsoleCommandSender || $sender instanceof Player && $sender->isOp())
 			$this->getWorldManager()->getServer()->getAsyncPool()->submitTask(new BackupTask(
-				$this->getWorldManager()->getWorldHandler()->getAllWorldName(),
+				serialize($this->getWorldManager()->getWorldHandler()->getAllWorldName()),
 				$this->getWorldManager()->getDataFolder(),
 				date("Ymd_His"))
 			);
@@ -45,7 +47,7 @@ class WorldBackup extends Command
 
 class BackupTask extends AsyncTask
 {
-	/** @var array */
+	/** @var string */
 	private $allWorld;
 
 	/** @var string */
@@ -56,18 +58,18 @@ class BackupTask extends AsyncTask
 
 	/**
 	 * Backup constructor.
-	 * @param array $allWorld
+	 * @param string $allWorld
 	 * @param string $folderPath
 	 * @param string $currentTime
 	 */
-	public function __construct(array $allWorld, string $folderPath, string $currentTime) {
+	public function __construct(string $allWorld, string $folderPath, string $currentTime) {
 		$this->allWorld = $allWorld;
 		$this->folderPath = $folderPath;
 		$this->currentTime = $currentTime;
 	}
 
-	/** @return array */
-	private function getAllWorld(): array {
+	/** @return string */
+	private function getAllWorld(): string {
 		return $this->allWorld;
 	}
 
@@ -89,7 +91,7 @@ class BackupTask extends AsyncTask
 		$zip = new ZipArchive();
 		$zip->open($backupPath = $backupPath.$currentTime.".zip", ZipArchive::CREATE);
 
-		foreach($this->getAllWorld() as $worldName) {
+		foreach(unserialize($this->getAllWorld()) as $worldName) {
 			$zip->addFile("./worlds/".$worldName."/level.dat");
 			foreach(glob("./worlds/".$worldName."/region/*") as $worldDirectoryPath) {
 				$content = str_replace("./worlds/".$worldName."/region/", '', $worldDirectoryPath);
@@ -101,8 +103,8 @@ class BackupTask extends AsyncTask
 	}
 
 	public function onRun() {
-		echo "backup world...".PHP_EOL;
+		echo "[WorldManager] BACKUP WORLDS...".PHP_EOL;
 		$this->backup($this->getFolderPath(), $this->getCurrentTime());
-		echo "complete backup world directory.".PHP_EOL;
+		echo "[Worldmanager] COMPLETE BACKUP WORLDS.".PHP_EOL;
 	}
 }
