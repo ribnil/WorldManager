@@ -1,4 +1,5 @@
-/.idea
+#IDE setting
+.idea
 
 #Composer
 /vendor/
